@@ -12,6 +12,7 @@ func main() {
 	exerciseHandler := handlers.NewExercise()
 
 	router.POST("/", exerciseHandler.AddExercise)
+	router.GET("/", exerciseHandler.GetExercises)
 
 	router.Run()
 }

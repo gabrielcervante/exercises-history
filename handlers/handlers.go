@@ -19,6 +19,14 @@ func NewExercise() *Exercise {
 	return &Exercise{}
 }
 
+func (e *Exercise) GetExercises(c *gin.Context) {
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"exercisesHistory": data.GetExercises(),
+	})
+
+}
+
 func (e *Exercise) AddExercise(c *gin.Context) {
 
 	var newExercises NewExercises
