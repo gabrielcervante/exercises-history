@@ -49,6 +49,50 @@ func AddExercise(exerciseName string, durationTime int) {
 	var exercises Exercises
 
 	db.Raw("INSERT INTO history (id, exercise_name, duration_time, timestamp_date) VALUES (?,?,?,?)", newExerciseId, exerciseName, durationTime, currentTimeStamp).Scan(&exercises)
+
+}
+
+func UpdateExercise(id int, exerciseName string, exerciseTime int) {
+
+	db, err := database()
+
+	if err != nil {
+		return
+	}
+
+	type Exerc struct {
+		ExercName string
+		ExercTime int
+		Id        int
+	}
+
+	var exercise Exerc
+
+	switch {
+	case exerciseName != "":
+		db.Raw("UPDATE history SET exercise_name = ? WHERE id = ?", exerciseName, id).Scan(&exercise.ExercName)
+	case exerciseTime != 0:
+		db.Raw("UPDATE history SET duration_time = ? WHERE id = ?", exerciseTime, id).Scan(&exercise.ExercTime)
+	}
+
+	if exerciseName != "" && exerciseTime != 0 {
+		db.Raw("UPDATE history SET exercise_name = ?, duration_time = ? WHERE id = ?", exerciseName, exerciseTime, id).Scan(&exercise)
+	}
+
+}
+
+func DeleteExercise(id int) {
+
+	db, err := database()
+
+	if err != nil {
+		return
+	}
+
+	db.Raw("DELETE from history WHERE id = ?", id).Scan(&id)
+
+	db.Raw("UPDATE history SET id = id - 1 WHERE Id > ?", id-1).Scan(&id)
+
 }
 
 func createId(db *gorm.DB) int {

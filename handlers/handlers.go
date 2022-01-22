@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gabrielcervante/exercises-history/data"
 	"github.com/gin-gonic/gin"
@@ -10,6 +12,10 @@ import (
 type NewExercises struct {
 	ExerciseName string `json:"exerciseName"`
 	ExerciseTime int    `json:"exerciseTime"`
+}
+
+type ExerciseId struct {
+	Id int `json:"id"`
 }
 
 type Exercise struct {
@@ -44,4 +50,28 @@ func (e *Exercise) AddExercise(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{
 		"Success": newExercises,
 	})
+}
+
+func (e *Exercise) DeleteExercise(c *gin.Context) {
+
+	paramId := c.Query("id")
+
+	if paramId == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"response": "Error, no value in id input"})
+		return
+	}
+
+	if paramId == "0" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"response": "Sorry, value 0 is not a valid input"})
+		return
+	}
+
+	id, err := strconv.Atoi(paramId)
+	fmt.Println(id)
+	if err != nil {
+		return
+	}
+
+	data.DeleteExercise(id)
+
 }
