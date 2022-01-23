@@ -61,9 +61,9 @@ func UpdateExercise(id int, exerciseName string, durationTime int) {
 	}
 
 	type Exerc struct {
-		ExercName string
+		ExercName    string
 		DurationTime int
-		Id        int
+		Id           int
 	}
 
 	var exercise Exerc

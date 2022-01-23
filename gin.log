@@ -1,0 +1,22 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /exercises                --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).GetExercises-fm (3 handlers)
+[GIN-debug] POST   /add                      --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).AddExercise-fm (3 handlers)
+[GIN-debug] PUT    /update                   --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).UpdateExercise-fm (3 handlers)
+[GIN-debug] DELETE /delete                   --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).DeleteExercise-fm (3 handlers)
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /exercises                --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).GetExercises-fm (3 handlers)
+[GIN-debug] POST   /add                      --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).AddExercise-fm (3 handlers)
+[GIN-debug] PUT    /update                   --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).UpdateExercise-fm (3 handlers)
+[GIN-debug] DELETE /delete                   --> github.com/gabrielcervante/exercises-history/handlers.(*Exercise).DeleteExercise-fm (3 handlers)
+[GIN] 2022/01/23 - 01:53:30 | 200 |   16.583847ms |       127.0.0.1 | GET      "/exercises"
+[GIN] 2022/01/23 - 01:54:11 | 200 |   13.776933ms |       127.0.0.1 | GET      "/exercises"
