@@ -52,7 +52,7 @@ func AddExercise(exerciseName string, durationTime int) {
 
 }
 
-func UpdateExercise(id int, exerciseName string, exerciseTime int) {
+func UpdateExercise(id int, exerciseName string, durationTime int) {
 
 	db, err := database()
 
@@ -62,7 +62,7 @@ func UpdateExercise(id int, exerciseName string, exerciseTime int) {
 
 	type Exerc struct {
 		ExercName string
-		ExercTime int
+		DurationTime int
 		Id        int
 	}
 
@@ -71,12 +71,12 @@ func UpdateExercise(id int, exerciseName string, exerciseTime int) {
 	switch {
 	case exerciseName != "":
 		db.Raw("UPDATE history SET exercise_name = ? WHERE id = ?", exerciseName, id).Scan(&exercise.ExercName)
-	case exerciseTime != 0:
-		db.Raw("UPDATE history SET duration_time = ? WHERE id = ?", exerciseTime, id).Scan(&exercise.ExercTime)
+	case durationTime != 0:
+		db.Raw("UPDATE history SET duration_time = ? WHERE id = ?", durationTime, id).Scan(&exercise.DurationTime)
 	}
 
-	if exerciseName != "" && exerciseTime != 0 {
-		db.Raw("UPDATE history SET exercise_name = ?, duration_time = ? WHERE id = ?", exerciseName, exerciseTime, id).Scan(&exercise)
+	if exerciseName != "" && durationTime != 0 {
+		db.Raw("UPDATE history SET exercise_name = ?, duration_time = ? WHERE id = ?", exerciseName, durationTime, id).Scan(&exercise)
 	}
 
 }

@@ -13,6 +13,7 @@ func main() {
 
 	router.GET("/", exerciseHandler.GetExercises)
 	router.POST("/", exerciseHandler.AddExercise)
+	router.PUT("/", exerciseHandler.UpdateExercise)
 	router.DELETE("/", exerciseHandler.DeleteExercise)
 
 	router.Run()
