@@ -113,7 +113,7 @@ func AddExercise(exerciseName string, durationTime int, channel chan int) {
 }
 
 //UpdateExercise updates the name or duration of an exercise
-func UpdateExercise(id int, exerciseName string, durationTime int, channel chan int) {
+func UpdateExercise(id int, exerciseName string, durationTime int, channel chan int, exerciseCounting chan int) {
 
 	db, err := database()
 
@@ -154,7 +154,11 @@ func UpdateExercise(id int, exerciseName string, durationTime int, channel chan 
 			return
 		}
 	}
-
+	
+	var exerciseCount int
+        if err := db.Raw("SELECT count(*) FROM history").Scan(&exerciseCount).Error; err != nil {
+                channel <- 500                                             return
+        }                                                                                                                     exerciseCounting <- exerciseCount
 	channel <- 200
 
 }
