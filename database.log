@@ -31,3 +31,4 @@ Database Error2022/01/24 21:46:54 failed to connect to `host=localhost user=cerv
 Database Error2022/01/24 21:47:39 failed to connect to `host=localhost user=cervant database=exercises`: server error (FATAL: password authentication failed for user "cervant" (SQLSTATE 28P01))
 Database Error2022/01/24 21:49:08 failed to connect to `host=localhost user=cervant database=exercises`: server error (FATAL: password authentication failed for user "cervant" (SQLSTATE 28P01))
 Database Error2022/01/24 21:50:01 failed to connect to `host=localhost user=cervant database=exercises`: server error (FATAL: password authentication failed for user "cervant" (SQLSTATE 28P01))
+Database Error2022/01/25 19:53:21 failed to connect to `host=localhost user=cervante database=exercises`: server error (FATAL: password authentication failed for user "cervante" (SQLSTATE 28P01))

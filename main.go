@@ -18,6 +18,9 @@ import (
 
 func main() {
 
+	//Setting gin to release mode
+	gin.SetMode(gin.ReleaseMode)
+
 	//The code below is used to log the gin output to a "log" file
 	gin.DisableConsoleColor()
 
