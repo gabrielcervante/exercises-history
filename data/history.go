@@ -1,6 +1,8 @@
 package data
 
 import (
+	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -17,13 +19,35 @@ type Exercises struct {
 
 //database func is used to open the database
 func database() (*gorm.DB, error) {
-	dsn := "host=localhost user=cervant password=cervantepswd dbname=exercises port=5432"
+	dsn := "host=localhost user=cervante password=cervantepswd dbname=exercises port=5432"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	return db, err
 }
 
 //GetOneExercise func is used to get the data of just 1 exercise
 func GetOneExercise(id int, channelStatusCode chan int, chanExercise chan Exercises, exerciseCounting chan int) {
+
+	//Variable to instance the exercises struct and fill it
+	var exercise Exercises
+
+	//Variable to instance the number of exercises
+	var exerciseCount int
+
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channelStatusCode <- 500
+		chanExercise <- exercise
+		exerciseCounting <- 1
+		return
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
 
 	//Opens db instance
 	db, err := database()
@@ -32,20 +56,27 @@ func GetOneExercise(id int, channelStatusCode chan int, chanExercise chan Exerci
 	if err != nil {
 		//channel status code is used to says if it's have success or failed in the request, 500 means internal server error and 200 means OK
 		channelStatusCode <- 500
+		logger.Println(err)
+		chanExercise <- exercise
+		exerciseCounting <- 1
 		return
 	}
 
 	//Get the details of a given exercise by id
-	var exercise Exercises
 	if err := db.Raw("SELECT id, exercise_name, duration_time,timestamp_date FROM history WHERE id = ?", id).Scan(&exercise).Error; err != nil {
 		channelStatusCode <- 500
+		logger.Println(err)
+		chanExercise <- exercise
+		exerciseCounting <- 1
 		return
 	}
 
 	//Gets the total number of exercises registered
-	var exerciseCount int
 	if err := db.Raw("SELECT count(*) FROM history").Scan(&exerciseCount).Error; err != nil {
 		channelStatusCode <- 500
+		logger.Println(err)
+		chanExercise <- exercise
+		exerciseCounting <- 1
 		return
 	}
 
@@ -59,17 +90,38 @@ func GetOneExercise(id int, channelStatusCode chan int, chanExercise chan Exerci
 //GetExercises is a function to get all of the exercises
 func GetExercises(channelStatusCode chan int, chanExercises chan []Exercises) {
 
+	//Variable to instance a slice of exercises
+	var exercises []Exercises
+
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channelStatusCode <- 500
+		chanExercises <- exercises
+		return
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
+
 	db, err := database()
 
 	if err != nil {
 		channelStatusCode <- 500
+		chanExercises <- exercises
+		logger.Println(err)
 		return
 	}
 
 	//Getting all of the exercises using a slice o the Exercises struct
-	var exercises []Exercises
 	if err := db.Raw("SELECT id, exercise_name, duration_time,timestamp_date FROM history").Scan(&exercises).Error; err != nil {
 		channelStatusCode <- 500
+		chanExercises <- exercises
+		logger.Println(err)
 		return
 	}
 
@@ -82,10 +134,25 @@ func GetExercises(channelStatusCode chan int, chanExercises chan []Exercises) {
 //AddExercise adds a new exercise
 func AddExercise(exerciseName string, durationTime int, channel chan int) {
 
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channel <- 500
+		return
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
+
 	db, err := database()
 
 	if err != nil {
 		channel <- 500
+		logger.Println(err)
 		return
 	}
 
@@ -105,6 +172,7 @@ func AddExercise(exerciseName string, durationTime int, channel chan int) {
 
 	if err := db.Raw("INSERT INTO history (id, exercise_name, duration_time, timestamp_date) VALUES (?,?,?,?)", newExerciseId, exerciseName, durationTime, currentTimeStamp).Scan(&exercises).Error; err != nil {
 		channel <- 500
+		logger.Println(err)
 		return
 	}
 
@@ -115,10 +183,27 @@ func AddExercise(exerciseName string, durationTime int, channel chan int) {
 //UpdateExercise updates the name or duration of an exercise
 func UpdateExercise(id int, exerciseName string, durationTime int, channel chan int, exerciseCounting chan int) {
 
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channel <- 500
+		exerciseCounting <- 1
+		return
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
+
 	db, err := database()
 
 	if err != nil {
 		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
 		return
 	}
 
@@ -139,11 +224,15 @@ func UpdateExercise(id int, exerciseName string, durationTime int, channel chan 
 	case exerciseName != "":
 		if err := db.Raw("UPDATE history SET exercise_name = ? WHERE id = ?", exerciseName, id).Scan(&exercise.ExercName).Error; err != nil {
 			channel <- 500
+			exerciseCounting <- 1
+			logger.Println(err)
 			return
 		}
 	case durationTime != 0:
 		if err := db.Raw("UPDATE history SET duration_time = ? WHERE id = ?", durationTime, id).Scan(&exercise.DurationTime).Error; err != nil {
 			channel <- 500
+			exerciseCounting <- 1
+			logger.Println(err)
 			return
 		}
 	}
@@ -151,14 +240,20 @@ func UpdateExercise(id int, exerciseName string, durationTime int, channel chan 
 	if exerciseName != "" && durationTime != 0 {
 		if err := db.Raw("UPDATE history SET exercise_name = ?, duration_time = ? WHERE id = ?", exerciseName, durationTime, id).Scan(&exercise).Error; err != nil {
 			channel <- 500
+			exerciseCounting <- 1
+			logger.Println(err)
 			return
 		}
 	}
-	
+
 	var exerciseCount int
-        if err := db.Raw("SELECT count(*) FROM history").Scan(&exerciseCount).Error; err != nil {
-                channel <- 500                                             return
-        }                                                                                                                     exerciseCounting <- exerciseCount
+	if err := db.Raw("SELECT count(*) FROM history").Scan(&exerciseCount).Error; err != nil {
+		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
+		return
+	}
+	exerciseCounting <- exerciseCount
 	channel <- 200
 
 }
@@ -166,22 +261,43 @@ func UpdateExercise(id int, exerciseName string, durationTime int, channel chan 
 //Delete exercise is used to delete an exercise
 func DeleteExercise(id int, channel chan int, exerciseCounting chan int) {
 
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channel <- 500
+		exerciseCounting <- 1
+		return
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
+
 	db, err := database()
 
 	if err != nil {
 		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
 		return
 	}
 
 	//Query to delete the exercise
 	if err := db.Raw("DELETE from history WHERE id = ?", id).Scan(&id).Error; err != nil {
 		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
 		return
 	}
 
 	//Changing all of the ids to decrease 1 number and don't have blank ids
 	if err := db.Raw("UPDATE history SET id = id - 1 WHERE Id > ?", id-1).Scan(&id).Error; err != nil {
 		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
 		return
 	}
 
@@ -189,6 +305,8 @@ func DeleteExercise(id int, channel chan int, exerciseCounting chan int) {
 	var exerciseCount int
 	if err := db.Raw("SELECT count(*) FROM history").Scan(&exerciseCount).Error; err != nil {
 		channel <- 500
+		exerciseCounting <- 1
+		logger.Println(err)
 		return
 	}
 
@@ -200,24 +318,39 @@ func DeleteExercise(id int, channel chan int, exerciseCounting chan int) {
 //Create id is a function to create distinct ids automatically to the new exercises
 func createId(db *gorm.DB, channel chan int) int {
 
+	//Creating a file to logging database errors
+	f, logFileErr := os.OpenFile("database.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if logFileErr != nil {
+		log.Println(logFileErr)
+		channel <- 500
+		return 0
+	}
+
+	defer f.Close()
+
+	//Creating a new logger
+	logger := log.New(f, "Database Error", log.LstdFlags)
+
 	id := 1
 
 	var exercise Exercises
 	//The query is looking ofr an id that has the value 1 and if it doesn't exist so it will create the first exercise
 	if err := db.Raw("SELECT id FROM history WHERE id = ?", id).Scan(&exercise.Id).Error; err != nil {
 		channel <- 500
+		logger.Println(err)
 		return 0
 	}
 
 	//Checking if the id 1 has, if the id 1 doesn't exist means that the database have not records
 	if exercise.Id == 0 {
-
 		return id
 	}
 
 	//If the id 1 exist then get the lenght of the rows and add 1 number to get a new id
 	if err := db.Raw("SELECT id FROM history ORDER BY id DESC LIMIT 1").Scan(&id).Error; err != nil {
 		channel <- 500
+		logger.Println(err)
 		return 0
 	}
 

@@ -57,7 +57,7 @@ func (e *Exercise) GetOneExercise(c *gin.Context) {
 	maxExercises := <-exerciseCount
 
 	//Checking if the requested id is valid
-	if id > maxExercises || maxExercise == 0{
+	if id > maxExercises && errorStatusCode == 200 || maxExercises == 0 && errorStatusCode == 200 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "The id provided is not associated to an exercise"})
 		return
 	}
@@ -178,29 +178,26 @@ func (e *Exercise) UpdateExercise(c *gin.Context) {
 		return
 	}
 
-	if exerciseUpdate.ExerciseName != "" {
-		if !isExerciseNameValid(exerciseUpdate.ExerciseName) {
-			c.IndentedJSON(http.StatusBadRequest, gin.H{
-				"error": "Sorry, exercise name is not using allowed letters",
-			})
-
-		}
+	if !isExerciseNameValid(exerciseUpdate.ExerciseName) && exerciseUpdate.ExerciseName != "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"error": "Sorry, exercise name is not using allowed letters",
+		})
 
 		return
 	}
 
 	hasDbError := make(chan int, 1)
 	exerciseCount := make(chan int, 1)
-	
+
 	go data.UpdateExercise(exerciseUpdate.Id, exerciseUpdate.ExerciseName, exerciseUpdate.DurationTime, hasDbError, exerciseCount)
 
 	maxExercises := <-exerciseCount
 	errorStatusCode := <-hasDbError
 
-	if id > maxExercises || maxExercise == 0 {
-                c.IndentedJSON(http.StatusNotFound, gin.H{"error": "The id provided is not associated to an exercise"}
-)                                                                          return
-        }
+	if exerciseUpdate.Id > maxExercises && errorStatusCode == 200 || maxExercises == 0 && errorStatusCode == 200 {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "The id provided is not associated to an exercise"})
+		return
+	}
 
 	if errorStatusCode == 200 {
 		c.IndentedJSON(http.StatusOK, gin.H{"success": exerciseUpdate})
@@ -243,7 +240,7 @@ func (e *Exercise) DeleteExercise(c *gin.Context) {
 	maxExercises := <-exerciseCount
 	errorStatusCode := <-hasDbError
 
-	if id > maxExercises || maxExercise == 0{
+	if id > maxExercises && errorStatusCode == 200 || maxExercises == 0 && errorStatusCode == 200 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"error": "The id provided is not associated to an exercise"})
 		return
 	}
